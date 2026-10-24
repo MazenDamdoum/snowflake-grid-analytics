@@ -198,7 +198,7 @@ function kpi(parent, { label, value, delta = null, deltaColor = "normal", sparkD
     chip = h("span", { class: `delta ${tone}` }, icon(up ? "arrow_upward" : "arrow_downward"), delta);
   }
   parent.append(h("div", { class: "kpi" },
-    h("div", { class: "label" }, label, help ? icon("help", { title: help, role: "img", "aria-label": help }) : null),
+    h("div", { class: "label" }, label, help ? h("span", { class: "tip", tabindex: "0", role: "button", "aria-label": help, "data-tip": help }, icon("help")) : null),
     h("div", { class: "value" }, value), chip,
     sparkData ? spark(sparkData, tone) : h("div", { class: "pad" })));
 }
