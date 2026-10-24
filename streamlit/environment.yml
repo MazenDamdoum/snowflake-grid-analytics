@@ -1,0 +1,8 @@
+# Packages for Streamlit in Snowflake (resolved from the Snowflake Anaconda channel)
+name: grid_intelligence
+channels:
+  - snowflake
+dependencies:
+  - streamlit=1.52.2
+  - altair
+  - pandas

@@ -1,0 +1,23 @@
+# Light, restrained theme. Custom themes are a preview feature in Streamlit in
+# Snowflake; if ignored, native components and ui.inject_css() still carry the look.
+[theme]
+base = "light"
+primaryColor = "#2a78d6"
+backgroundColor = "#fbfbfa"
+secondaryBackgroundColor = "#f2f3f5"
+textColor = "#1f2933"
+linkColor = "#2a78d6"
+borderColor = "#e4e6ea"
+dataframeBorderColor = "#eceef1"
+dataframeHeaderBackgroundColor = "#f6f7f8"
+showWidgetBorder = true
+showSidebarBorder = true
+baseRadius = "0.6rem"
+headingFontWeights = [650, 600, 600, 600, 600, 600]
+chartCategoricalColors = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"]
+
+[theme.sidebar]
+backgroundColor = "#f4f5f7"
+
+[client]
+toolbarMode = "minimal"

@@ -1,0 +1,16 @@
+# Copy to config.toml (git-ignored) and fill in.
+# Account identifier: Snowsight > bottom-left account menu > "Connect a tool to Snowflake",
+# e.g. "abc12345.ca-central-1.aws" or "MYORG-MYACCOUNT".
+
+[snowflake]
+account   = "MYORG-MYACCOUNT"
+user      = "YOUR_USERNAME"
+role      = "ACCOUNTADMIN"      # setup/00 needs ACCOUNTADMIN; day-to-day loads can use GRID_ADMIN
+warehouse = "WH_INGEST"
+
+# Key-pair auth (recommended; trial accounts have no SSO, so "externalbrowser" fails).
+# Generate a key into .snowflake/ (git-ignored), then in Snowsight run:
+#   SET u = '"' || CURRENT_USER() || '"';
+#   ALTER USER IDENTIFIER($u) SET RSA_PUBLIC_KEY = '<public key body, no BEGIN/END lines>';
+authenticator    = "SNOWFLAKE_JWT"
+private_key_file = ".snowflake/rsa_key.p8"

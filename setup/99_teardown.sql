@@ -1,0 +1,20 @@
+/* =============================================================================
+   99 - Teardown: removes everything this project created.
+   ============================================================================= */
+USE ROLE ACCOUNTADMIN;
+
+ALTER TASK IF EXISTS GRID_DB.STAGING.T_ROOT SUSPEND;
+
+DROP SHARE IF EXISTS GRID_MARTS_SHARE;
+DROP DATABASE IF EXISTS GRID_DB_DEV;
+DROP DATABASE IF EXISTS GRID_DB;          -- schemas, tables, stages, tasks, app, policies
+
+DROP WAREHOUSE IF EXISTS WH_INGEST;
+DROP WAREHOUSE IF EXISTS WH_TRANSFORM;
+DROP WAREHOUSE IF EXISTS WH_BI;
+DROP RESOURCE MONITOR IF EXISTS RM_GRID_MONTHLY;
+
+DROP ROLE IF EXISTS GRID_VIEWER;
+DROP ROLE IF EXISTS GRID_ANALYST;
+DROP ROLE IF EXISTS GRID_ENGINEER;
+DROP ROLE IF EXISTS GRID_ADMIN;

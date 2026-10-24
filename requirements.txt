@@ -1,0 +1,9 @@
+# ingestion + local Streamlit run
+snowflake-connector-python>=3.12
+snowflake-snowpark-python[pandas]>=1.25
+streamlit==1.52.2       # same version as Streamlit in Snowflake
+altair>=5
+pandas>=2.1
+
+# tests
+pytest>=8

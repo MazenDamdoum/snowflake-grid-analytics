@@ -1,0 +1,19 @@
+# local data pulled from IESO / generated assets
+data/
+
+# credentials
+# root config.toml only: streamlit/.streamlit/config.toml is the app theme
+/config.toml
+.snowflake/
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
