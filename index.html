@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ontario Grid &amp; Asset Intelligence | Snowflake dashboard</title>
+<meta name="description" content="Interactive Snowflake + Streamlit dashboard on real IESO grid data and a 4,906-asset utility risk register, by Mazen Damdoum.">
+<meta name="author" content="Mazen Damdoum">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Mazen Damdoum">
+<meta property="og:title" content="Ontario Grid &amp; Asset Intelligence: Snowflake Dashboard">
+<meta property="og:description" content="Real IESO grid data and a 4,906-asset risk register on Snowflake: streams, tasks, dynamic tables, Snowpark and Streamlit. Open the interactive dashboard.">
+<meta property="og:url" content="https://mazendamdoum.github.io/snowflake-grid-analytics/">
+<meta property="og:image" content="https://mazendamdoum.github.io/snowflake-grid-analytics/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+<meta property="og:image:alt" content="Ontario Grid &amp; Asset Intelligence dashboard built on Snowflake">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://mazendamdoum.github.io/snowflake-grid-analytics/">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..24,400,0,0&display=block">
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://cdn.jsdelivr.net/npm/vega@5.30.0/build/vega.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0/build/vega-lite.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0/build/vega-embed.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="#/summary"><img src="assets/icon.svg" alt="">Grid Intelligence</a>
+    <nav class="nav" aria-label="Pages">
+      <div class="nav-group">Overview</div>
+      <a href="#/summary" data-route="summary"><span class="icon" aria-hidden="true">space_dashboard</span>Summary</a>
+      <div class="nav-group">Grid</div>
+      <a href="#/supply" data-route="supply"><span class="icon" aria-hidden="true">bolt</span>Supply &amp; demand</a>
+      <a href="#/market" data-route="market"><span class="icon" aria-hidden="true">battery_charging_full</span>Market &amp; storage</a>
+      <div class="nav-group">Distribution</div>
+      <a href="#/assets" data-route="assets"><span class="icon" aria-hidden="true">monitor_heart</span>Asset health</a>
+      <a href="#/capital" data-route="capital"><span class="icon" aria-hidden="true">request_quote</span>Capital plan</a>
+      <div class="nav-group">Platform</div>
+      <a href="#/ops" data-route="ops"><span class="icon" aria-hidden="true">monitoring</span>Operations</a>
+    </nav>
+    <div class="side-note">
+      <p>IESO public market data and Lakeshore Hydro, a fictional distribution utility.</p>
+      <div class="chips"><span class="chip">Snowflake</span><span class="chip">Streams &amp; tasks</span><span class="chip">Dynamic tables</span><span class="chip">Snowpark</span><span class="chip">Streamlit</span></div>
+      <div class="side-links">
+        <a href="https://github.com/MazenDamdoum/snowflake-grid-analytics" target="_blank" rel="noopener"><span class="icon" aria-hidden="true">code</span>Source on GitHub</a>
+        <a href="https://www.linkedin.com/in/mazendamdoum" target="_blank" rel="noopener"><span class="icon" aria-hidden="true">person</span>Mazen Damdoum</a>
+      </div>
+    </div>
+  </aside>
+  <main>
+    <div class="banner"><span class="icon" aria-hidden="true">info</span>
+      <span>Public copy of a Streamlit in Snowflake app, running on a data snapshot exported from Snowflake.</span>
+      <a href="https://github.com/MazenDamdoum/snowflake-grid-analytics" target="_blank" rel="noopener">How it's built</a></div>
+    <div id="page"><p class="loading">Loading the Snowflake snapshot...</p></div>
+  </main>
+</div>
+<script src="assets/app.js"></script>
+</body>
+</html>
