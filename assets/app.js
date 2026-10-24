@@ -4,13 +4,36 @@
 "use strict";
 
 // ---------------------------------------------------------------- palette (common.py)
-const SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"];
-const SEQUENTIAL_BLUE = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"];
-const ACCENT = SERIES[0];
-const DIVERGING = { pos: "#2a78d6", neg: "#e34948" };
-const MUTED = "#9aa1ab";
-const INK_MUTED = "#6b7280";
-const GRID = "#e8eaee";
+const THEMES = {
+  light: { series: ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"],
+           seq: ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"],
+           div: { pos: "#2a78d6", neg: "#e34948" }, muted: "#9aa1ab", axis: "#6b7280", grid: "#e8eaee", label: "#374151",
+           gap: "#ffffff", rule: "#c7cbd1", rule2: "#9aa1ab", zoneInk: "#b42f2f", zoneOp: 0.06, gradTop: "#b7d3f6",
+           sparkOff: ["#a3a8b4", "rgba(163,168,180,.25)"] },
+  dark:  { series: ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"],
+           seq: ["#0d366b", "#104281", "#184f95", "#256abf", "#3987e5", "#6da7ec", "#9ec5f4"],
+           div: { pos: "#3987e5", neg: "#e66767" }, muted: "#5f6773", axis: "#9aa2ad", grid: "#2a2f38", label: "#c8ccd3",
+           gap: "#13161b", rule: "#3a404a", rule2: "#6e7681", zoneInk: "#ff8a8a", zoneOp: 0.12, gradTop: "#1f4d85",
+           sparkOff: ["#7d8592", "rgba(125,133,146,.22)"] },
+};
+let DARK = false, SERIES, SEQUENTIAL_BLUE, ACCENT, DIVERGING, MUTED, INK_MUTED, GRID, LABEL, GAP, RULE, RULE2, ZONE_INK, ZONE_OP, GRAD_TOP, SPARK_OFF;
+function isDark() {
+  const pick = document.documentElement.getAttribute("data-theme");
+  return pick ? pick === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+function applyTheme() {
+  DARK = isDark();
+  const t = THEMES[DARK ? "dark" : "light"];
+  [SERIES, SEQUENTIAL_BLUE, DIVERGING, MUTED, INK_MUTED, GRID, LABEL, GAP, RULE, RULE2, ZONE_INK, ZONE_OP, GRAD_TOP, SPARK_OFF] =
+    [t.series, t.seq, t.div, t.muted, t.axis, t.grid, t.label, t.gap, t.rule, t.rule2, t.zoneInk, t.zoneOp, t.gradTop, t.sparkOff];
+  ACCENT = SERIES[0];
+  const btn = document.getElementById("theme-toggle");
+  if (btn) {
+    btn.querySelector(".icon").textContent = DARK ? "light_mode" : "dark_mode";
+    btn.querySelector(".lbl").textContent = DARK ? "Light mode" : "Dark mode";
+    btn.setAttribute("aria-label", DARK ? "Switch to light mode" : "Switch to dark mode");
+  }
+}
 const FUELS = ["HYDRO", "GAS", "WIND", "SOLAR", "NUCLEAR", "BIOFUEL"];
 const ASSET_TYPES = ["TRANSFORMER", "POLE"];
 const WAREHOUSES = ["WH_INGEST", "WH_TRANSFORM", "WH_BI"];
@@ -19,7 +42,7 @@ const TITLE_CASE = "upper(slice(datum.label, 0, 1)) + lower(slice(datum.label, 1
 const TYPE_LABEL = "datum.label == 'POLE' ? 'Poles' : 'Transformers'";
 
 // ---------------------------------------------------------------- chart theme (ui.py)
-const VL_CONFIG = {
+const vlConfig = () => ({
   background: "transparent",
   font: "Source Sans 3, Source Sans Pro, sans-serif",
   view: { stroke: null },
@@ -27,13 +50,13 @@ const VL_CONFIG = {
   axis: { labelColor: INK_MUTED, titleColor: INK_MUTED, labelFontSize: 11, titleFontSize: 11, titleFontWeight: "normal",
           domain: false, ticks: false, gridColor: GRID, gridDash: [2, 3], labelPadding: 6 },
   axisX: { grid: false },
-  legend: { orient: "top", labelColor: "#374151", labelFontSize: 11, symbolType: "circle", symbolSize: 70,
+  legend: { orient: "top", labelColor: LABEL, labelFontSize: 11, symbolType: "circle", symbolSize: 70,
             columnPadding: 14, padding: 0 },
   line: { strokeWidth: 2 },
   bar: { cornerRadiusEnd: 3 },
   range: { category: SERIES },
   title: { anchor: "start", fontSize: 12, fontWeight: "normal", color: INK_MUTED },
-};
+});
 
 // ---------------------------------------------------------------- data
 const D = {};
@@ -129,12 +152,12 @@ function chart(parent, spec, height) {
   parent.append(div);
   pending.push([div, {
     $schema: "https://vega.github.io/schema/vega-lite/v5.json",
-    width: "container", height, autosize: { type: "fit", contains: "padding" }, config: VL_CONFIG, ...spec,
+    width: "container", height, autosize: { type: "fit", contains: "padding" }, config: vlConfig(), ...spec,
   }]);
 }
 function flushCharts() {
   const jobs = pending; pending = [];
-  for (const [div, spec] of jobs) vegaEmbed(div, spec, { actions: false, renderer: "svg" }).catch((e) => console.error(e, spec));
+  for (const [div, spec] of jobs) vegaEmbed(div, spec, { actions: false, renderer: "svg", tooltip: { theme: DARK ? "dark" : "light" } }).catch((e) => console.error(e, spec));
 }
 
 function pageHeader(root, titleText, subtitle, method) {
@@ -158,7 +181,7 @@ function spark(values, tone) {
   const W = 300, H = 50, y = (x) => H - ((x - (lo - span * 0.9)) / (span * 2.0)) * H;
   const pts = v.map((x, i) => [(i / (v.length - 1)) * W, y(x)]);
   const line = pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join("");
-  const colors = { good: ["#21c354", "rgba(33,195,84,.13)"], bad: ["#ff4b4b", "rgba(255,75,75,.13)"], off: ["#a3a8b4", "rgba(163,168,180,.25)"] }[tone];
+  const colors = { good: ["#21c354", "rgba(33,195,84,.13)"], bad: ["#ff4b4b", "rgba(255,75,75,.13)"], off: SPARK_OFF }[tone];
   const svg = `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
     <path d="${line}L${W},${H}L0,${H}Z" fill="${colors[1]}"/>
     <path d="${line}" fill="none" stroke="${colors[0]}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
@@ -256,7 +279,7 @@ function pageSummary(root) {
   chart(c1, {
     data: { values: shares },
     transform: [{ calculate: `indexof(${JSON.stringify(FUELS)}, datum.FUEL)`, as: "fuel_rank" }],
-    mark: { type: "bar", height: 26, cornerRadius: 4, stroke: "white", strokeWidth: 2 },
+    mark: { type: "bar", height: 26, cornerRadius: 4, stroke: GAP, strokeWidth: 2 },
     encoding: {
       x: { field: "SHARE", type: "quantitative", stack: "normalize", axis: null },
       color: { field: "FUEL", type: "nominal", scale: { domain: FUELS, range: SERIES.slice(0, 6) }, sort: FUELS,
@@ -338,7 +361,7 @@ function pageSupply(root) {
   const left = card(r, "Generation by fuel", `GWh per day. ${title(mover.FUEL)} share ${mover.CHANGE_PTS > 0 ? "up" : "down"} ${Math.abs(mover.CHANGE_PTS).toFixed(1)} pts on the previous period.`);
   chart(left, { data: { values: mix },
     transform: [{ calculate: `indexof(${JSON.stringify(FUELS)}, datum.FUEL)`, as: "fuel_rank" }],
-    mark: { type: "area", stroke: "white", strokeWidth: 0.6 }, encoding: {
+    mark: { type: "area", stroke: GAP, strokeWidth: 0.6 }, encoding: {
       x: { field: "DATE", type: "temporal", title: null, axis: { format: "%b %d", labelOverlap: true } },
       y: { field: "GWH", type: "quantitative", stack: true, title: null },
       color: { field: "FUEL", type: "nominal", scale: { domain: FUELS, range: SERIES.slice(0, 6) }, sort: FUELS, legend: { labelExpr: TITLE_CASE, title: null } },
@@ -355,7 +378,7 @@ function pageSupply(root) {
     { mark: { type: "bar", size: 16 }, encoding: { ...enc, color: { field: "FUEL", type: "nominal", scale: { domain: FUELS, range: SERIES.slice(0, 6) }, legend: null },
       tooltip: [{ field: "FUEL", type: "nominal", title: "Fuel" }, { field: "SHARE", type: "quantitative", format: ".1%", title: "Share" },
                 { field: "CHANGE_PTS", type: "quantitative", format: "+.1f", title: "Change (pts)" }] } },
-    { mark: { type: "text", align: "left", dx: 4, fontSize: 11, color: "#374151" }, encoding: { ...enc, text: { field: "SHARE", type: "quantitative", format: ".0%" } } },
+    { mark: { type: "text", align: "left", dx: 4, fontSize: 11, color: LABEL }, encoding: { ...enc, text: { field: "SHARE", type: "quantitative", format: ".0%" } } },
   ] }, 290);
 
   const hrs = D.hourlyRows.filter((x) => x.d >= start && x.d <= end && x.mw !== null);
@@ -372,15 +395,15 @@ function pageSupply(root) {
     { data: { values: curD }, mark: { type: "line", color: ACCENT }, encoding: { x: xd,
       y: { field: "PEAK_DEMAND_MW", type: "quantitative", title: null, scale: { zero: false }, axis: { format: "~s" } } } },
     { data: { values: curD }, params: [{ name: "hover", select: { type: "point", fields: ["DATE"], nearest: true, on: "pointerover", clear: "pointerout" } }],
-      mark: { type: "circle", size: 60, color: ACCENT, stroke: "white", strokeWidth: 1.5 }, encoding: { x: xd,
+      mark: { type: "circle", size: 60, color: ACCENT, stroke: GAP, strokeWidth: 1.5 }, encoding: { x: xd,
       y: { field: "PEAK_DEMAND_MW", type: "quantitative" }, opacity: { condition: { param: "hover", empty: false, value: 1 }, value: 0 },
       tooltip: [{ field: "DATE", type: "temporal", title: "Date" }, { field: "PEAK_DEMAND_MW", type: "quantitative", title: "Peak MW", format: ",.0f" },
                 { field: "PEAK_HOUR", type: "quantitative", title: "Hour ending" }] } },
     { data: { values: [{ DATE: local(peak.DELIVERY_DATE), PEAK_DEMAND_MW: peak.PEAK_DEMAND_MW }] },
-      mark: { type: "circle", size: 70, color: ACCENT, stroke: "white", strokeWidth: 1.5 }, encoding: { x: xd, y: { field: "PEAK_DEMAND_MW", type: "quantitative" } } },
+      mark: { type: "circle", size: 70, color: ACCENT, stroke: GAP, strokeWidth: 1.5 }, encoding: { x: xd, y: { field: "PEAK_DEMAND_MW", type: "quantitative" } } },
   ] }, 250);
   const hm = card(r, "Demand by hour", `Average MW. Highest around HE${hot.DELIVERY_HOUR} in ${fmtDay(hot.MONTH.slice(0, 10), { month: "long" })}.`);
-  chart(hm, { data: { values: heat }, mark: { type: "rect", stroke: "white", strokeWidth: 1, cornerRadius: 2 }, encoding: {
+  chart(hm, { data: { values: heat }, mark: { type: "rect", stroke: GAP, strokeWidth: 1, cornerRadius: 2 }, encoding: {
     x: { field: "DELIVERY_HOUR", type: "ordinal", title: "Hour ending (EST)", axis: { labelAngle: 0, values: [1, 6, 12, 18, 24] } },
     y: { field: "MONTH", type: "ordinal", timeUnit: "yearmonth", title: null, axis: { format: "%b %Y" } },
     color: { field: "AVG_MW", type: "quantitative", title: null, scale: { range: SEQUENTIAL_BLUE }, legend: { orient: "right", format: "~s", gradientLength: 140 } },
@@ -401,7 +424,7 @@ function pageSupply(root) {
       { mark: { type: "bar", size: 12, color: SERIES[FUELS.indexOf(state.cf_fuel)] }, encoding: { ...encc,
         tooltip: [{ field: "GENERATOR", type: "nominal", title: "Unit" }, { field: "CAPACITY_FACTOR", type: "quantitative", format: ".1%", title: "CF" },
                   { field: "OUTPUT_GWH", type: "quantitative", title: "Output GWh" }, { field: "CAPABILITY_MW", type: "quantitative", title: "Max MW" }] } },
-      { mark: { type: "text", align: "left", dx: 4, fontSize: 11, color: "#374151" }, encoding: { ...encc, text: { field: "CAPACITY_FACTOR", type: "quantitative", format: ".0%" } } },
+      { mark: { type: "text", align: "left", dx: 4, fontSize: 11, color: LABEL }, encoding: { ...encc, text: { field: "CAPACITY_FACTOR", type: "quantitative", format: ".0%" } } },
     ] }, 24 * gens.length + 20);
   }
   const ex = expander(root, "Daily data");
@@ -524,7 +547,7 @@ function pageMarket(root) {
       x: { field: "NET_GWH", type: "quantitative", title: "GWh (negative = net import)" },
       color: { condition: { test: "datum.NET_GWH >= 0", value: DIVERGING.pos }, value: DIVERGING.neg },
       tooltip: [{ field: "NAME", type: "nominal", title: "Intertie" }, { field: "NET_GWH", type: "quantitative", title: "Net GWh", format: ",.0f" }] } },
-    { data: { values: [{ x: 0 }] }, mark: { type: "rule", color: "#c7cbd1" }, encoding: { x: { field: "x", type: "quantitative" } } },
+    { data: { values: [{ x: 0 }] }, mark: { type: "rule", color: RULE }, encoding: { x: { field: "x", type: "quantitative" } } },
   ] }, Math.max(180, 22 * ties.length));
 
   // --- battery arbitrage
@@ -561,7 +584,7 @@ function pageMarket(root) {
     let cumv = 0;
     const cum = sim.map((s) => ({ DATE: local(s.DELIVERY_DATE), NET_REVENUE: s.NET_REVENUE, CUMULATIVE: (cumv += s.NET_REVENUE) }));
     chart(bc, { data: { values: cum }, mark: { type: "area", line: { color: ACCENT, strokeWidth: 2 },
-      color: { gradient: "linear", x1: 1, x2: 1, y1: 1, y2: 0, stops: [{ color: "white", offset: 0 }, { color: "#b7d3f6", offset: 1 }] } }, encoding: {
+      color: { gradient: "linear", x1: 1, x2: 1, y1: 1, y2: 0, stops: [{ color: GAP, offset: 0 }, { color: GRAD_TOP, offset: 1 }] } }, encoding: {
       x: { field: "DATE", type: "temporal", title: null, axis: { format: "%b %d", labelOverlap: true } },
       y: { field: "CUMULATIVE", type: "quantitative", title: null, axis: { format: "$~s" } },
       tooltip: [{ field: "DATE", type: "temporal", title: "Date" }, { field: "NET_REVENUE", type: "quantitative", title: "Day", format: "$,.0f" },
@@ -612,9 +635,9 @@ function pageAssets(root) {
   let r = row(root, "r21");
   const rm = card(r, "Risk matrix", `${fx(hot.length)} assets in the high-risk zone (PoF above 50 %, top-quartile consequence), ${fmtMoney(sum(hot.map((a) => a.REPLACEMENT_COST_CAD)))} to replace.`);
   chart(rm, { layer: [
-    { data: { values: [{ x: cofHi, x2: cofMax * 1.02, y: 0.5, y2: 1 }] }, mark: { type: "rect", color: "#d03b3b", opacity: 0.06 },
+    { data: { values: [{ x: cofHi, x2: cofMax * 1.02, y: 0.5, y2: 1 }] }, mark: { type: "rect", color: "#d03b3b", opacity: ZONE_OP },
       encoding: { x: { field: "x", type: "quantitative" }, x2: { field: "x2" }, y: { field: "y", type: "quantitative" }, y2: { field: "y2" } } },
-    { data: { values: risk }, mark: { type: "circle", size: 34, opacity: 0.65, stroke: "white", strokeWidth: 0.6 }, encoding: {
+    { data: { values: risk }, mark: { type: "circle", size: 34, opacity: 0.65, stroke: GAP, strokeWidth: 0.6 }, encoding: {
       x: { field: "COF", type: "quantitative", title: "Consequence of failure (log scale)", scale: { type: "log", nice: false } },
       y: { field: "POF", type: "quantitative", title: "Probability of failure", axis: { format: "%" } },
       color: { field: "ASSET_TYPE", type: "nominal", scale: { domain: ASSET_TYPES, range: SERIES.slice(0, 2) }, legend: { labelExpr: TYPE_LABEL, title: null } },
@@ -623,7 +646,7 @@ function pageAssets(root) {
                 { field: "POF", type: "quantitative", title: "PoF", format: ".0%" }, { field: "CUSTOMERS_SERVED", type: "quantitative", title: "Customers" },
                 { field: "CRITICAL_CUSTOMERS", type: "quantitative", title: "Critical" },
                 { field: "REPLACEMENT_COST_CAD", type: "quantitative", title: "Replacement", format: "$,.0f" }] } },
-    { data: { values: [{ x: cofMax, y: 0.98, t: "High risk" }] }, mark: { type: "text", align: "right", baseline: "top", color: "#b42f2f", fontSize: 11 },
+    { data: { values: [{ x: cofMax, y: 0.98, t: "High risk" }] }, mark: { type: "text", align: "right", baseline: "top", color: ZONE_INK, fontSize: 11 },
       encoding: { x: { field: "x", type: "quantitative" }, y: { field: "y", type: "quantitative" }, text: { field: "t" } } },
   ] }, 330);
   const hb = card(r, "Health bands", "Count of assets per band");
@@ -631,7 +654,7 @@ function pageAssets(root) {
     const [band, type] = key.split("|");
     return { RANK: +band[0], LABEL: title(band.slice(4)), ASSET_TYPE: type, N: rs.length };
   });
-  chart(hb, { data: { values: bands }, mark: { type: "bar", size: 18, stroke: "white", strokeWidth: 1 }, encoding: {
+  chart(hb, { data: { values: bands }, mark: { type: "bar", size: 18, stroke: GAP, strokeWidth: 1 }, encoding: {
     y: { field: "LABEL", type: "nominal", title: null, sort: { field: "RANK", op: "min" } },
     x: { field: "N", type: "quantitative", title: null, stack: true },
     color: { field: "ASSET_TYPE", type: "nominal", scale: { domain: ASSET_TYPES, range: SERIES.slice(0, 2) }, legend: null },
@@ -669,10 +692,10 @@ function pageAssets(root) {
   const byType = [...groupBy(labelled.filter((x) => counts.includes(x.EQUIPMENT_TYPE)), (x) => `${x.EQUIPMENT_TYPE}|${x.KV}`)]
     .map(([key, rs]) => { const [t, kv] = key.split("|"); return { EQUIPMENT_TYPE: t, KV: kv, N: rs.length }; });
   const kvOrder = [...new Set(byType.map((x) => x.KV))].sort((a, b) => (a === "n/a" ? 0 : -parseInt(a, 10)) - (b === "n/a" ? 0 : -parseInt(b, 10)));
-  chart(txc, { data: { values: byType }, mark: { type: "bar", size: 14, stroke: "white", strokeWidth: 1 }, encoding: {
+  chart(txc, { data: { values: byType }, mark: { type: "bar", size: 14, stroke: GAP, strokeWidth: 1 }, encoding: {
     y: { field: "EQUIPMENT_TYPE", type: "nominal", sort: "-x", title: null },
     x: { aggregate: "sum", field: "N", type: "quantitative", title: "Equipment items out of service (8 most common types)" },
-    color: { field: "KV", type: "nominal", sort: kvOrder, scale: { scheme: "blues", reverse: true }, title: null },
+    color: { field: "KV", type: "nominal", sort: kvOrder, scale: { scheme: "blues", reverse: !DARK }, title: null },
     order: { field: "KV", type: "ordinal", sort: "descending" },
     tooltip: [{ field: "EQUIPMENT_TYPE", type: "nominal", title: "Equipment" }, { field: "KV", type: "nominal", title: "Voltage" }, { field: "N", type: "quantitative", title: "Items" }] } },
     26 * counts.length + 40);
@@ -758,10 +781,10 @@ function pageCapital(root) {
       tooltip: [{ field: "PLAN_RANK", type: "quantitative", title: "Rank" }, { field: "ASSET_ID", type: "nominal", title: "Asset" },
                 { field: "CUMULATIVE_COST_CAD", type: "quantitative", title: "Cumulative spend", format: "$,.0f" },
                 { field: "CUM_RISK", type: "quantitative", title: "Risk removed", format: ".1%" }] } },
-    { data: { values: marker }, mark: { type: "rule", color: "#9aa1ab", strokeDash: [4, 3] }, encoding: { x: { field: "x", type: "quantitative" } } },
-    { data: { values: marker }, mark: { type: "circle", size: 70, color: ACCENT, stroke: "white", strokeWidth: 1.5 },
+    { data: { values: marker }, mark: { type: "rule", color: RULE2, strokeDash: [4, 3] }, encoding: { x: { field: "x", type: "quantitative" } } },
+    { data: { values: marker }, mark: { type: "circle", size: 70, color: ACCENT, stroke: GAP, strokeWidth: 1.5 },
       encoding: { x: { field: "x", type: "quantitative" }, y: { field: "y", type: "quantitative" } } },
-    { data: { values: marker }, mark: { type: "text", align: "left", dx: 6, dy: -8, fontSize: 11, color: "#374151" },
+    { data: { values: marker }, mark: { type: "text", align: "left", dx: 6, dy: -8, fontSize: 11, color: LABEL },
       encoding: { x: { field: "x", type: "quantitative" }, y: { field: "y", type: "quantitative" }, text: { field: "t" } } },
   ] }, 290);
   const sr = card(r, "Spend by region", "Replacement cost in the plan");
@@ -769,7 +792,7 @@ function pageCapital(root) {
     const [region, type] = key.split("|");
     return { REGION: region, ASSET_TYPE: type, REPLACEMENT_COST_CAD: sum(rs.map((p) => p.REPLACEMENT_COST_CAD)) };
   });
-  chart(sr, { data: { values: by }, mark: { type: "bar", size: 34, stroke: "white", strokeWidth: 1 }, encoding: {
+  chart(sr, { data: { values: by }, mark: { type: "bar", size: 34, stroke: GAP, strokeWidth: 1 }, encoding: {
     x: { field: "REGION", type: "nominal", title: null, axis: { labelAngle: 0, labelExpr: TITLE_CASE } },
     y: { field: "REPLACEMENT_COST_CAD", type: "quantitative", title: null, stack: true, axis: { format: "$~s" } },
     color: { field: "ASSET_TYPE", type: "nominal", scale: { domain: ASSET_TYPES, range: SERIES.slice(0, 2) }, legend: { labelExpr: TYPE_LABEL, title: null } },
@@ -822,7 +845,7 @@ function pageOps(root) {
   let r = row(root, "r21");
   const cr = card(r, "Credits per day", "Stacked by warehouse");
   if (!credits.length) cr.append(h("p", { class: "caption" }, "No metering rows yet. ACCOUNT_USAGE lags by a few hours."));
-  else chart(cr, { data: { values: credits.map((c) => ({ ...c, DATE: local(c.DAY) })) }, mark: { type: "bar", size: 14, stroke: "white", strokeWidth: 1 }, encoding: {
+  else chart(cr, { data: { values: credits.map((c) => ({ ...c, DATE: local(c.DAY) })) }, mark: { type: "bar", size: 14, stroke: GAP, strokeWidth: 1 }, encoding: {
     x: { field: "DATE", type: "ordinal", timeUnit: "yearmonthdate", title: null, axis: { format: "%b %d", labelAngle: 0 } },
     y: { field: "CREDITS", type: "quantitative", title: null, stack: true },
     color: { field: "WAREHOUSE_NAME", type: "nominal", scale: { domain: WAREHOUSES, range: SERIES.slice(0, 3) }, legend: { title: null } },
@@ -856,6 +879,7 @@ const ROUTES = { summary: pageSummary, supply: pageSupply, market: pageMarket, a
 const TITLES = { summary: "Summary", supply: "Supply & demand", market: "Market & storage", assets: "Asset health", capital: "Capital plan", ops: "Operations" };
 let lastRoute = null;
 function render() {
+  applyTheme();
   const route = (location.hash.replace(/^#\/?/, "") || "summary").split("?")[0];
   const page = ROUTES[route] ? route : "summary";
   const main = document.getElementById("page");
@@ -870,6 +894,15 @@ function render() {
 }
 
 window.addEventListener("hashchange", render);
+document.getElementById("theme-toggle").addEventListener("click", () => {
+  const next = isDark() ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  try { localStorage.setItem("grid-theme", next); } catch (e) { /* private mode: still switches for this visit */ }
+  render();
+});
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (!document.documentElement.getAttribute("data-theme")) render();
+});
 loadData().then(render).catch((e) => {
   document.getElementById("page").replaceChildren(h("p", { class: "loading" }, "Could not load the data snapshot."));
   console.error(e);

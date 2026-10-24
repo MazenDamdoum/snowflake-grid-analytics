@@ -1,8 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>try{var t=localStorage.getItem("grid-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<meta name="theme-color" content="#fbfbfa" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
 <title>Ontario Grid &amp; Asset Intelligence | Snowflake dashboard</title>
 <meta name="description" content="Interactive Snowflake + Streamlit dashboard on real IESO grid data and a 4,906-asset utility risk register, by Mazen Damdoum.">
 <meta name="author" content="Mazen Damdoum">
@@ -10,13 +13,15 @@
 <meta property="og:site_name" content="Mazen Damdoum">
 <meta property="og:title" content="Ontario Grid &amp; Asset Intelligence: Snowflake Dashboard">
 <meta property="og:description" content="Real IESO grid data and a 4,906-asset risk register on Snowflake: streams, tasks, dynamic tables, Snowpark and Streamlit. Open the interactive dashboard.">
-<meta property="og:url" content="https://mazendamdoum.github.io/snowflake-grid-analytics/">
 <meta property="og:image" content="https://mazendamdoum.github.io/snowflake-grid-analytics/og.png">
+<meta property="og:image:secure_url" content="https://mazendamdoum.github.io/snowflake-grid-analytics/og.png">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="627">
 <meta property="og:image:alt" content="Ontario Grid &amp; Asset Intelligence dashboard built on Snowflake">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="canonical" href="https://mazendamdoum.github.io/snowflake-grid-analytics/">
+<meta name="twitter:title" content="Ontario Grid &amp; Asset Intelligence: Snowflake Dashboard">
+<meta name="twitter:image" content="https://mazendamdoum.github.io/snowflake-grid-analytics/og.png">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,9 +58,12 @@
     </div>
   </aside>
   <main>
+    <div class="topbar">
     <div class="banner"><span class="icon" aria-hidden="true">info</span>
       <span>Public copy of a Streamlit in Snowflake app, running on a data snapshot exported from Snowflake.</span>
       <a href="https://github.com/MazenDamdoum/snowflake-grid-analytics" target="_blank" rel="noopener">How it's built</a></div>
+    <button id="theme-toggle" class="btn theme-btn" type="button" aria-label="Switch to dark mode"><span class="icon" aria-hidden="true">dark_mode</span><span class="lbl">Dark mode</span></button>
+    </div>
     <div id="page"><p class="loading">Loading the Snowflake snapshot...</p></div>
   </main>
 </div>
